@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
+import httpx
 import pytest
 import respx
 from httpx import Response
@@ -11,6 +14,7 @@ from wikipediacorpus._http import (
     _check_api_response,
     _check_http_response,
     api_get,
+    api_get_async,
 )
 from wikipediacorpus.exceptions import APIError, HTTPError, PageNotFoundError
 
@@ -108,3 +112,107 @@ def test_api_get_raises_api_error(no_rate_limit):
     with pytest.raises(APIError) as exc_info:
         api_get({"action": "query", "format": "json"}, rate_limiter=no_rate_limit)
     assert exc_info.value.code == "badvalue"
+
+
+# ── Retry logic ──────────────────────────────────────────────────────────────
+
+
+_PARAMS = {"action": "query", "format": "json", "titles": "Test"}
+_OK_DATA = {"batchcomplete": "", "query": {"pages": {"1": {"pageid": 1, "title": "Test"}}}}
+
+
+@respx.mock
+def test_api_get_retries_on_429(no_rate_limit):
+    """429 should be retried, succeeding on the next attempt."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        side_effect=[Response(429), Response(200, json=_OK_DATA)]
+    )
+    with patch("time.sleep"):
+        result = api_get(_PARAMS, rate_limiter=no_rate_limit)
+    assert result == _OK_DATA
+
+
+@respx.mock
+def test_api_get_retries_exhausted_on_429(no_rate_limit):
+    """After max retries on 429, HTTPError should be raised."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        return_value=Response(429)
+    )
+    with patch("time.sleep"):
+        with pytest.raises(HTTPError) as exc_info:
+            api_get(_PARAMS, rate_limiter=no_rate_limit)
+        assert exc_info.value.status_code == 429
+
+
+@respx.mock
+def test_api_get_respects_retry_after_header(no_rate_limit):
+    """Retry-After header should set the delay."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        side_effect=[
+            Response(429, headers={"retry-after": "5"}),
+            Response(200, json=_OK_DATA),
+        ]
+    )
+    with patch("time.sleep") as mock_sleep:
+        api_get(_PARAMS, rate_limiter=no_rate_limit)
+    mock_sleep.assert_called_with(5.0)
+
+
+@respx.mock
+def test_api_get_retries_on_read_error(no_rate_limit):
+    """Transient connection errors should be retried."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        side_effect=[httpx.ReadError("connection reset"), Response(200, json=_OK_DATA)]
+    )
+    with patch("time.sleep"):
+        result = api_get(_PARAMS, rate_limiter=no_rate_limit)
+    assert result == _OK_DATA
+
+
+@respx.mock
+def test_api_get_read_error_exhausted(no_rate_limit):
+    """Transient errors after max retries should raise HTTPError."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        side_effect=httpx.ReadError("connection reset")
+    )
+    with patch("time.sleep"):
+        with pytest.raises(HTTPError) as exc_info:
+            api_get(_PARAMS, rate_limiter=no_rate_limit)
+        assert exc_info.value.status_code == 0
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_api_get_async_retries_on_429(no_rate_limit):
+    """Async: 429 should be retried."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        side_effect=[Response(429), Response(200, json=_OK_DATA)]
+    )
+    with patch("asyncio.sleep"):
+        result = await api_get_async(_PARAMS, rate_limiter=no_rate_limit)
+    assert result == _OK_DATA
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_api_get_async_retries_on_read_error(no_rate_limit):
+    """Async: transient connection errors should be retried."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        side_effect=[httpx.ReadError("peer closed"), Response(200, json=_OK_DATA)]
+    )
+    with patch("asyncio.sleep"):
+        result = await api_get_async(_PARAMS, rate_limiter=no_rate_limit)
+    assert result == _OK_DATA
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_api_get_async_retries_exhausted_on_429(no_rate_limit):
+    """Async: after max retries on 429, HTTPError should be raised."""
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        return_value=Response(429)
+    )
+    with patch("asyncio.sleep"):
+        with pytest.raises(HTTPError) as exc_info:
+            await api_get_async(_PARAMS, rate_limiter=no_rate_limit)
+        assert exc_info.value.status_code == 429

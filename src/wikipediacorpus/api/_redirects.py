@@ -121,7 +121,7 @@ async def _resolve_redirects_async_impl(
     titles: list[str],
     lang: str = "en",
     *,
-    max_concurrency: int = 10,
+    max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
 ) -> dict[str, str | None]:
     """Resolve redirects for many titles concurrently."""
@@ -154,7 +154,7 @@ def resolve_redirects(
     titles: list[str],
     lang: str = "en",
     *,
-    max_concurrency: int = 10,
+    max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
 ) -> dict[str, str | None]:
     """Resolve redirects for multiple titles (sync wrapper).
@@ -170,7 +170,7 @@ def resolve_redirects(
     lang : str
         Language code (default ``"en"``).
     max_concurrency : int
-        Maximum concurrent API requests (default 10).
+        Maximum concurrent API requests (default 4).
     rate_limiter : RateLimiter, optional
         Custom rate limiter.
 
@@ -191,7 +191,7 @@ async def resolve_redirects_async(
     titles: list[str],
     lang: str = "en",
     *,
-    max_concurrency: int = 10,
+    max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
 ) -> dict[str, str | None]:
     """Async version of :func:`resolve_redirects`."""

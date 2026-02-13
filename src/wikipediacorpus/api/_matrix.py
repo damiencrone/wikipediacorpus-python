@@ -120,7 +120,7 @@ async def get_category_members_matrix_async(
     lang: str = "en",
     namespace: Namespace = Namespace.CATEGORY,
     *,
-    max_concurrency: int = 10,
+    max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
 ) -> CategoryMatrix:
     """Async version of :func:`get_category_members_matrix`.

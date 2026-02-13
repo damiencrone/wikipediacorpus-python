@@ -91,7 +91,7 @@ async def _get_articles_async_impl(
     titles: list[str],
     lang: str = "en",
     *,
-    max_concurrency: int = 10,
+    max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
 ) -> list[Article]:
     """Fetch multiple articles concurrently."""
@@ -115,7 +115,7 @@ def get_articles(
     titles: list[str],
     lang: str = "en",
     *,
-    max_concurrency: int = 10,
+    max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
 ) -> list[Article]:
     """Retrieve multiple articles concurrently (sync wrapper).
@@ -127,7 +127,7 @@ def get_articles(
     lang : str
         Language code (default ``"en"``).
     max_concurrency : int
-        Maximum number of concurrent requests (default 10).
+        Maximum number of concurrent requests (default 4).
     rate_limiter : RateLimiter, optional
         Custom rate limiter instance.
 
@@ -147,7 +147,7 @@ async def get_articles_async(
     titles: list[str],
     lang: str = "en",
     *,
-    max_concurrency: int = 10,
+    max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
 ) -> list[Article]:
     """Retrieve multiple articles concurrently (async).
@@ -159,7 +159,7 @@ async def get_articles_async(
     lang : str
         Language code (default ``"en"``).
     max_concurrency : int
-        Maximum number of concurrent requests (default 10).
+        Maximum number of concurrent requests (default 4).
     rate_limiter : RateLimiter, optional
         Custom rate limiter instance.
 
