@@ -1,0 +1,17 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "23862": {
+        "pageid": 23862,
+        "ns": 0,
+        "title": "Python (programming language)",
+        "links": [
+          {"ns": 0, "title": "Guido van Rossum"},
+          {"ns": 0, "title": "Programming language"},
+          {"ns": 0, "title": "Object-oriented programming"}
+        ]
+      }
+    }
+  }
+}

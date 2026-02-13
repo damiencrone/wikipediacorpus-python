@@ -1,0 +1,16 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "23862": {
+        "pageid": 23862,
+        "ns": 0,
+        "title": "Python (programming language)",
+        "linkshere": [
+          {"pageid": 500, "ns": 0, "title": "Comparison of programming languages"},
+          {"pageid": 501, "ns": 0, "title": "List of programming languages"}
+        ]
+      }
+    }
+  }
+}

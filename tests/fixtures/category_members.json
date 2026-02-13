@@ -1,0 +1,10 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "categorymembers": [
+      {"pageid": 100, "ns": 14, "title": "Category:Functional languages"},
+      {"pageid": 101, "ns": 14, "title": "Category:Object-oriented languages"},
+      {"pageid": 102, "ns": 14, "title": "Category:Scripting languages"}
+    ]
+  }
+}
