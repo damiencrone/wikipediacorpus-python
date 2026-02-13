@@ -1,4 +1,4 @@
-"""Retrieve Wikipedia category members."""
+"""Retrieve Wikipedia category members and page categories."""
 
 from __future__ import annotations
 
@@ -87,7 +87,7 @@ def get_category_members(
     data = api_get(params, lang, client=client, rate_limiter=rate_limiter)
     members.extend(_parse_members(data))
 
-    while "continue" in data:
+    while "continue" in data and "cmcontinue" in data["continue"]:
         params["cmcontinue"] = data["continue"]["cmcontinue"]
         data = api_get(params, lang, client=client, rate_limiter=rate_limiter)
         members.extend(_parse_members(data))
@@ -113,9 +113,103 @@ async def get_category_members_async(
     data = await api_get_async(params, lang, client=client, rate_limiter=rate_limiter)
     members.extend(_parse_members(data))
 
-    while "continue" in data:
+    while "continue" in data and "cmcontinue" in data["continue"]:
         params["cmcontinue"] = data["continue"]["cmcontinue"]
         data = await api_get_async(params, lang, client=client, rate_limiter=rate_limiter)
         members.extend(_parse_members(data))
 
     return members
+
+
+# ── Page categories ──────────────────────────────────────────────────────────
+
+
+def _make_page_categories_params(page: str, hidden: bool) -> dict[str, str]:
+    params: dict[str, str] = {
+        "action": "query",
+        "format": "json",
+        "prop": "categories",
+        "titles": page,
+        "cllimit": "max",
+    }
+    if not hidden:
+        params["clshow"] = "!hidden"
+    return params
+
+
+def _parse_page_categories(data: dict[str, Any]) -> list[str]:
+    pages = data.get("query", {}).get("pages", {})
+    categories: list[str] = []
+    for page in pages.values():
+        for cat in page.get("categories", []):
+            categories.append(cat["title"])
+    return categories
+
+
+def get_page_categories(
+    page: str,
+    lang: str = "en",
+    *,
+    hidden: bool = False,
+    client: httpx.Client | None = None,
+    rate_limiter: RateLimiter | None = None,
+) -> list[str]:
+    """Retrieve the categories a page belongs to.
+
+    Parameters
+    ----------
+    page : str
+        Title of the Wikipedia page.
+    lang : str
+        Language code (default ``"en"``).
+    hidden : bool
+        Whether to include hidden categories (default ``False``).
+    client : httpx.Client, optional
+        Reusable HTTP client.
+    rate_limiter : RateLimiter, optional
+        Custom rate limiter.
+
+    Returns
+    -------
+    list[str]
+        Category titles (with ``Category:`` prefix).
+    """
+    logger.info("Retrieving categories for page: %s", page)
+
+    params = _make_page_categories_params(page, hidden)
+    categories: list[str] = []
+
+    data = api_get(params, lang, client=client, rate_limiter=rate_limiter)
+    categories.extend(_parse_page_categories(data))
+
+    while "continue" in data and "clcontinue" in data["continue"]:
+        params["clcontinue"] = data["continue"]["clcontinue"]
+        data = api_get(params, lang, client=client, rate_limiter=rate_limiter)
+        categories.extend(_parse_page_categories(data))
+
+    return categories
+
+
+async def get_page_categories_async(
+    page: str,
+    lang: str = "en",
+    *,
+    hidden: bool = False,
+    client: httpx.AsyncClient | None = None,
+    rate_limiter: RateLimiter | None = None,
+) -> list[str]:
+    """Async version of :func:`get_page_categories`."""
+    logger.info("Retrieving categories for page: %s", page)
+
+    params = _make_page_categories_params(page, hidden)
+    categories: list[str] = []
+
+    data = await api_get_async(params, lang, client=client, rate_limiter=rate_limiter)
+    categories.extend(_parse_page_categories(data))
+
+    while "continue" in data and "clcontinue" in data["continue"]:
+        params["clcontinue"] = data["continue"]["clcontinue"]
+        data = await api_get_async(params, lang, client=client, rate_limiter=rate_limiter)
+        categories.extend(_parse_page_categories(data))
+
+    return categories

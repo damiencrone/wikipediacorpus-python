@@ -52,3 +52,48 @@ def links_outgoing_response() -> dict[str, Any]:
 @pytest.fixture()
 def links_incoming_response() -> dict[str, Any]:
     return load_fixture("links_incoming.json")
+
+
+@pytest.fixture()
+def redirects_response() -> dict[str, Any]:
+    return load_fixture("redirects.json")
+
+
+@pytest.fixture()
+def redirect_destination_response() -> dict[str, Any]:
+    return load_fixture("redirect_destination.json")
+
+
+@pytest.fixture()
+def templates_response() -> dict[str, Any]:
+    return load_fixture("templates.json")
+
+
+@pytest.fixture()
+def page_categories_response() -> dict[str, Any]:
+    return load_fixture("page_categories.json")
+
+
+@pytest.fixture()
+def api_error_response() -> dict[str, Any]:
+    return load_fixture("api_error.json")
+
+
+@pytest.fixture()
+def links_outgoing_continue_response() -> dict[str, Any]:
+    return load_fixture("links_outgoing_continue.json")
+
+
+@pytest.fixture()
+def links_incoming_continue_response() -> dict[str, Any]:
+    return load_fixture("links_incoming_continue.json")
+
+
+@pytest.fixture()
+def redirects_normalized_response() -> dict[str, Any]:
+    return load_fixture("redirects_normalized.json")
+
+
+@pytest.fixture()
+def templates_continue_response() -> dict[str, Any]:
+    return load_fixture("templates_continue.json")

@@ -1,0 +1,26 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "23862": {
+        "pageid": 23862,
+        "ns": 0,
+        "title": "Python (programming language)",
+        "categories": [
+          {
+            "ns": 14,
+            "title": "Category:Programming languages"
+          },
+          {
+            "ns": 14,
+            "title": "Category:Object-oriented programming languages"
+          },
+          {
+            "ns": 14,
+            "title": "Category:Scripting languages"
+          }
+        ]
+      }
+    }
+  }
+}

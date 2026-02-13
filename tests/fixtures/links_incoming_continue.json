@@ -1,0 +1,18 @@
+{
+  "continue": {
+    "lhcontinue": "23862|502",
+    "continue": "||"
+  },
+  "query": {
+    "pages": {
+      "23862": {
+        "pageid": 23862,
+        "ns": 0,
+        "title": "Python (programming language)",
+        "linkshere": [
+          {"pageid": 500, "ns": 0, "title": "Comparison of programming languages"}
+        ]
+      }
+    }
+  }
+}

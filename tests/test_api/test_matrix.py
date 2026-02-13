@@ -111,3 +111,68 @@ async def test_matrix_async(no_rate_limit):
 
     assert result.matrix.shape[0] == 1
     assert result.matrix.shape[1] == 3
+
+
+# ── Async depth-2 BFS ────────────────────────────────────────────────────────
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_matrix_async_depth_2(no_rate_limit):
+    depth1 = _make_category_response([
+        {"pageid": 10, "ns": 14, "title": "Category:Sub X"},
+        {"pageid": 11, "ns": 14, "title": "Category:Sub Y"},
+    ])
+    depth2_x = _make_category_response([
+        {"pageid": 20, "ns": 14, "title": "Category:Sub Z"},
+    ])
+    depth2_y = _make_category_response([])
+
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        side_effect=[
+            Response(200, json=depth1),
+            Response(200, json=depth2_x),
+            Response(200, json=depth2_y),
+        ]
+    )
+
+    result = await get_category_members_matrix_async(
+        ["Cat A"], depth=2, rate_limiter=no_rate_limit
+    )
+
+    assert result.matrix.shape[0] == 3
+    assert "Sub Z" in result.col_labels
+
+
+# ── Edge cases ────────────────────────────────────────────────────────────────
+
+
+@respx.mock
+def test_matrix_empty_category_list(no_rate_limit):
+    result = get_category_members_matrix([], rate_limiter=no_rate_limit)
+    assert result.matrix.shape == (0, 0)
+    assert result.row_labels == []
+    assert result.col_labels == []
+
+
+@respx.mock
+def test_matrix_depth_1_main_namespace(no_rate_limit):
+    """Depth=1 with MAIN namespace should work without error."""
+    fixture = {
+        "batchcomplete": "",
+        "query": {
+            "categorymembers": [
+                {"pageid": 300, "ns": 0, "title": "Python (programming language)"}
+            ]
+        },
+    }
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        return_value=Response(200, json=fixture)
+    )
+
+    result = get_category_members_matrix(
+        ["Programming languages"], namespace=Namespace.MAIN,
+        rate_limiter=no_rate_limit,
+    )
+    assert result.matrix.shape[0] == 1
+    assert "Python (programming language)" in result.col_labels

@@ -1,0 +1,19 @@
+{
+  "continue": {
+    "plcontinue": "23862|0|Design_pattern",
+    "continue": "||"
+  },
+  "query": {
+    "pages": {
+      "23862": {
+        "pageid": 23862,
+        "ns": 0,
+        "title": "Python (programming language)",
+        "links": [
+          {"ns": 0, "title": "Guido van Rossum"},
+          {"ns": 0, "title": "Programming language"}
+        ]
+      }
+    }
+  }
+}

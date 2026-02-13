@@ -87,3 +87,34 @@ def test_cut_articles_at_headings():
     for r in results:
         assert "See also" not in r
         assert "History" in r
+
+
+# ── Edge cases ────────────────────────────────────────────────────────────────
+
+
+def test_get_headings_ignores_level3():
+    """Level-3 headings (=== ... ===) should not be captured."""
+    text = "\n=== Level 3 ===\nContent\n== Level 2 ==\nMore content"
+    headings = get_headings(text)
+    assert headings == ["Level 2"]
+    assert "Level 3" not in headings
+
+
+def test_split_text_leading_heading():
+    """Text starting with a heading should have an empty lead section."""
+    text = "\n== Heading ==\nBody text"
+    sections = split_text(text)
+    assert sections[0].heading == "Lead"
+    assert sections[0].text.strip() == ""
+    assert sections[1].heading == "Heading"
+    assert "Body text" in sections[1].text
+
+
+def test_cut_at_headings_empty_text():
+    result = cut_at_headings("", ["See also"])
+    assert result == ""
+
+
+def test_cut_articles_at_headings_empty_list():
+    result = cut_articles_at_headings([], ["See also"])
+    assert result == []

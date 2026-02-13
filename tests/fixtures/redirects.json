@@ -1,0 +1,18 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "redirects": [
+      {
+        "from": "Morals",
+        "to": "Morality"
+      }
+    ],
+    "pages": {
+      "18831": {
+        "pageid": 18831,
+        "ns": 0,
+        "title": "Morality"
+      }
+    }
+  }
+}

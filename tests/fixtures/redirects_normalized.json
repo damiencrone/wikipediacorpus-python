@@ -1,0 +1,24 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "normalized": [
+      {
+        "from": "python (programming language)",
+        "to": "Python (programming language)"
+      }
+    ],
+    "redirects": [
+      {
+        "from": "Python (programming language)",
+        "to": "Python (programming language) v2"
+      }
+    ],
+    "pages": {
+      "23862": {
+        "pageid": 23862,
+        "ns": 0,
+        "title": "Python (programming language) v2"
+      }
+    }
+  }
+}

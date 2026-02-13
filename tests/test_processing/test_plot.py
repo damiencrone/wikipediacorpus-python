@@ -56,3 +56,30 @@ def test_plot_n_limits_bars():
     # Should only have 5 bars
     ax = fig.axes[0]
     assert len(ax.patches) == 5
+
+
+# ── Content verification ─────────────────────────────────────────────────────
+
+
+def test_plot_empty_input():
+    fig = plot_heading_frequency({})
+    assert fig is not None
+    ax = fig.axes[0]
+    assert len(ax.patches) == 0
+
+
+def test_plot_verifies_bar_labels():
+    counts = {"Alpha": 10, "Beta": 20, "Gamma": 5}
+    fig = plot_heading_frequency(counts, n=3)
+    ax = fig.axes[0]
+    labels = [t.get_text() for t in ax.get_yticklabels()]
+    # All input headings should appear as y-axis labels
+    assert set(labels) == {"Alpha", "Beta", "Gamma"}
+
+
+def test_plot_verifies_bar_values():
+    counts = {"Alpha": 10, "Beta": 20}
+    fig = plot_heading_frequency(counts, n=2)
+    ax = fig.axes[0]
+    widths = [p.get_width() for p in ax.patches]
+    assert sorted(widths) == [10, 20]

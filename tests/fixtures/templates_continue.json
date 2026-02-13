@@ -1,0 +1,25 @@
+{
+  "continue": {
+    "tlcontinue": "23862|10|Refbegin",
+    "continue": "||"
+  },
+  "query": {
+    "pages": {
+      "23862": {
+        "pageid": 23862,
+        "ns": 0,
+        "title": "Python (programming language)",
+        "templates": [
+          {
+            "ns": 10,
+            "title": "Template:Infobox programming language"
+          },
+          {
+            "ns": 10,
+            "title": "Template:Cite web"
+          }
+        ]
+      }
+    }
+  }
+}

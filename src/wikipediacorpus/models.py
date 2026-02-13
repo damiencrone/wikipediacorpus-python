@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+import numpy as np
 from scipy.sparse import csr_matrix
 
 
@@ -76,3 +77,24 @@ class CategoryMatrix:
     matrix: csr_matrix
     row_labels: list[str]
     col_labels: list[str]
+
+
+@dataclass
+class LinkMatrix:
+    """A binary sparse matrix of page-link adjacency.
+
+    Rows are source pages, columns are target pages.
+    """
+
+    matrix: csr_matrix
+    row_labels: list[str]
+    col_labels: list[str]
+
+
+@dataclass(frozen=True)
+class SeedSimilarity:
+    """Results of seed-page similarity computation."""
+
+    scores: dict[str, float]
+    page_weight: np.ndarray
+    target_vec: np.ndarray
