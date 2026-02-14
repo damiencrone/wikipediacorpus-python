@@ -12,7 +12,7 @@ from tqdm.asyncio import tqdm as atqdm
 from .._http import api_get, api_get_async, get_async_client
 from .._rate_limiter import RateLimiter
 from ..exceptions import PageNotFoundError
-from ..models import Article
+from ..models import Article, ArticleBatch
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ def _make_params(title: str) -> dict[str, str]:
     return {
         "action": "query",
         "format": "json",
-        "prop": "extracts",
+        "prop": "extracts|info",
         "explaintext": "1",
         "titles": title,
     }
@@ -29,11 +29,31 @@ def _make_params(title: str) -> dict[str, str]:
 
 def _parse_article(data: dict[str, Any], title: str, lang: str) -> Article:
     page = next(iter(data["query"]["pages"].values()))
+    text = page.get("extract", "")
+    wikitext_length: int | None = page.get("length")
+
+    if "missing" not in page and not text:
+        logger.warning("Page '%s' exists but has an empty extract", page.get("title", title))
+
+    possibly_truncated = False
+    if text.endswith("..."):
+        possibly_truncated = True
+    elif wikitext_length is not None and wikitext_length > 0 and len(text) < wikitext_length * 0.5:
+        possibly_truncated = True
+
+    if possibly_truncated:
+        logger.warning(
+            "Article '%s' may be truncated (extract length=%d, wikitext_length=%s)",
+            page.get("title", title), len(text), wikitext_length,
+        )
+
     return Article(
         title=page.get("title", title),
-        text=page.get("extract", ""),
+        text=text,
         pageid=page.get("pageid", -1),
         lang=lang,
+        possibly_truncated=possibly_truncated,
+        wikitext_length=wikitext_length,
     )
 
 
@@ -94,9 +114,10 @@ async def _get_articles_async_impl(
     *,
     max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
-) -> list[Article]:
+) -> ArticleBatch:
     """Fetch multiple articles concurrently."""
     sem = asyncio.Semaphore(max_concurrency)
+    missing: list[str] = []
 
     async def _fetch(title: str, client: httpx.AsyncClient) -> Article | None:
         async with sem:
@@ -106,6 +127,7 @@ async def _get_articles_async_impl(
                 )
             except PageNotFoundError:
                 logger.warning("Skipping missing page: '%s' (lang=%s)", title, lang)
+                missing.append(title)
                 return None
 
     async with get_async_client() as client:
@@ -120,7 +142,7 @@ async def _get_articles_async_impl(
         logger.warning(
             "Skipped %d missing page(s) out of %d requested", skipped, len(titles),
         )
-    return results
+    return ArticleBatch(articles=results, missing=missing)
 
 
 def get_articles(
@@ -129,7 +151,7 @@ def get_articles(
     *,
     max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
-) -> list[Article]:
+) -> ArticleBatch:
     """Retrieve multiple articles concurrently (sync wrapper).
 
     Parameters
@@ -145,8 +167,8 @@ def get_articles(
 
     Returns
     -------
-    list[Article]
-        The fetched articles (order may differ from input).
+    ArticleBatch
+        The fetched articles and list of missing page titles.
     """
     return asyncio.run(
         _get_articles_async_impl(
@@ -161,7 +183,7 @@ async def get_articles_async(
     *,
     max_concurrency: int = 4,
     rate_limiter: RateLimiter | None = None,
-) -> list[Article]:
+) -> ArticleBatch:
     """Retrieve multiple articles concurrently (async).
 
     Parameters
@@ -177,8 +199,8 @@ async def get_articles_async(
 
     Returns
     -------
-    list[Article]
-        The fetched articles (order may differ from input).
+    ArticleBatch
+        The fetched articles and list of missing page titles.
     """
     return await _get_articles_async_impl(
         titles, lang, max_concurrency=max_concurrency, rate_limiter=rate_limiter,

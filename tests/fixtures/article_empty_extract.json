@@ -1,0 +1,14 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "55555": {
+        "pageid": 55555,
+        "ns": 0,
+        "title": "Empty Extract Article",
+        "extract": "",
+        "length": 100
+      }
+    }
+  }
+}

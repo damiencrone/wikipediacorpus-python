@@ -83,6 +83,8 @@ def test_compute_seed_similarity_basic():
         assert 0.0 <= score <= 1.0
     assert len(result.page_weight) > 0
     assert len(result.target_vec) > 0
+    assert result.n_columns_removed == 0
+    assert result.n_columns_used == 3
 
 
 def test_compute_seed_similarity_zero_indegree_removed():
@@ -107,6 +109,8 @@ def test_compute_seed_similarity_zero_indegree_removed():
     # Should still compute without error
     assert "Seed1" in result.scores
     assert "Other" in result.scores
+    assert result.n_columns_removed == 1
+    assert result.n_columns_used == 1
 
 
 def test_compute_seed_similarity_returns_seed_similarity():
@@ -127,6 +131,8 @@ def test_compute_seed_similarity_returns_seed_similarity():
     assert isinstance(result.scores, dict)
     assert isinstance(result.page_weight, np.ndarray)
     assert isinstance(result.target_vec, np.ndarray)
+    assert result.n_columns_removed == 0
+    assert result.n_columns_used == 2
 
 
 def test_compute_seed_similarity_all_zero_indegree():
@@ -151,3 +157,28 @@ def test_compute_seed_similarity_all_zero_indegree():
     # All scores should be 0.0
     assert result.scores["A"] == 0.0
     assert result.scores["B"] == 0.0
+    assert result.n_columns_removed == 2
+    assert result.n_columns_used == 0
+
+
+def test_compute_seed_similarity_metadata_partial_removal():
+    """Partial column removal: 4 columns, 2 removed."""
+    links = {
+        "Seed1": ["A", "B", "C", "D"],
+        "Other": ["A", "C"],
+    }
+    link_matrix = make_link_matrix(links)
+
+    # A and C have nonzero in-degree; B and D have zero
+    in_degree_all = {"A": 3, "B": 0, "C": 2, "D": 0}
+    in_degree_from_seeds = {"A": 1, "B": 0, "C": 1, "D": 0}
+
+    result = compute_seed_similarity(
+        seeds=["Seed1"],
+        link_matrix=link_matrix,
+        in_degree_all=in_degree_all,
+        in_degree_from_seeds=in_degree_from_seeds,
+    )
+
+    assert result.n_columns_removed == 2
+    assert result.n_columns_used == 2

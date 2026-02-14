@@ -8,6 +8,7 @@ from scipy.sparse import csr_matrix
 
 from wikipediacorpus.models import (
     Article,
+    ArticleBatch,
     CategoryMember,
     HeadingFrequency,
     LinkDirection,
@@ -114,3 +115,105 @@ def test_seed_similarity_is_frozen():
     )
     with pytest.raises(dataclasses.FrozenInstanceError):
         ss.scores = {}
+
+
+# ── Article new fields ───────────────────────────────────────────────────────
+
+
+def test_article_defaults_for_new_fields():
+    a = Article(title="Test", text="body", pageid=1, lang="en")
+    assert a.possibly_truncated is False
+    assert a.wikitext_length is None
+
+
+def test_article_with_truncation_fields():
+    a = Article(
+        title="Test", text="body", pageid=1, lang="en",
+        possibly_truncated=True, wikitext_length=5000,
+    )
+    assert a.possibly_truncated is True
+    assert a.wikitext_length == 5000
+
+
+def test_article_truncation_fields_are_frozen():
+    a = Article(
+        title="Test", text="body", pageid=1, lang="en",
+        possibly_truncated=True, wikitext_length=5000,
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        a.possibly_truncated = False
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        a.wikitext_length = 0
+
+
+# ── ArticleBatch ─────────────────────────────────────────────────────────────
+
+
+def test_article_batch():
+    articles = [
+        Article(title="A", text="a", pageid=1, lang="en"),
+        Article(title="B", text="b", pageid=2, lang="en"),
+    ]
+    batch = ArticleBatch(articles=articles, missing=["C"])
+    assert len(batch.articles) == 2
+    assert batch.missing == ["C"]
+
+
+def test_article_batch_empty():
+    batch = ArticleBatch(articles=[], missing=["X", "Y"])
+    assert batch.articles == []
+    assert len(batch.missing) == 2
+
+
+def test_article_batch_no_missing():
+    articles = [Article(title="A", text="a", pageid=1, lang="en")]
+    batch = ArticleBatch(articles=articles, missing=[])
+    assert len(batch.articles) == 1
+    assert batch.missing == []
+
+
+def test_article_batch_is_frozen():
+    batch = ArticleBatch(articles=[], missing=[])
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        batch.articles = []
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        batch.missing = []
+
+
+# ── SeedSimilarity metadata fields ──────────────────────────────────────────
+
+
+def test_seed_similarity_metadata_fields():
+    ss = SeedSimilarity(
+        scores={"A": 0.5},
+        page_weight=np.array([1.0]),
+        target_vec=np.array([1.0]),
+        n_columns_removed=3,
+        n_columns_used=7,
+    )
+    assert ss.n_columns_removed == 3
+    assert ss.n_columns_used == 7
+
+
+def test_seed_similarity_metadata_defaults():
+    ss = SeedSimilarity(
+        scores={"A": 0.5},
+        page_weight=np.array([1.0]),
+        target_vec=np.array([1.0]),
+    )
+    assert ss.n_columns_removed == 0
+    assert ss.n_columns_used == 0
+
+
+def test_seed_similarity_metadata_frozen():
+    ss = SeedSimilarity(
+        scores={"A": 0.5},
+        page_weight=np.array([1.0]),
+        target_vec=np.array([1.0]),
+        n_columns_removed=1,
+        n_columns_used=2,
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        ss.n_columns_removed = 0
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        ss.n_columns_used = 0

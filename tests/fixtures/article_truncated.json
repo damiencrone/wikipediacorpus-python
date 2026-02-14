@@ -1,0 +1,14 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "99999": {
+        "pageid": 99999,
+        "ns": 0,
+        "title": "Truncated Article",
+        "extract": "This is a truncated article that ends with an ellipsis...",
+        "length": 50000
+      }
+    }
+  }
+}

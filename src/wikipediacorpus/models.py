@@ -31,6 +31,16 @@ class Article:
     text: str
     pageid: int
     lang: str
+    possibly_truncated: bool = False
+    wikitext_length: int | None = None
+
+
+@dataclass(frozen=True)
+class ArticleBatch:
+    """Result of a batch article fetch, with metadata about missing pages."""
+
+    articles: list[Article]
+    missing: list[str]
 
 
 @dataclass(frozen=True)
@@ -98,3 +108,5 @@ class SeedSimilarity:
     scores: dict[str, float]
     page_weight: np.ndarray
     target_vec: np.ndarray
+    n_columns_removed: int = 0
+    n_columns_used: int = 0

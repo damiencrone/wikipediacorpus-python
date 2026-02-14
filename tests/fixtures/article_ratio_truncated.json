@@ -1,0 +1,14 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "77777": {
+        "pageid": 77777,
+        "ns": 0,
+        "title": "Ratio Truncated Article",
+        "extract": "Short extract.",
+        "length": 50000
+      }
+    }
+  }
+}

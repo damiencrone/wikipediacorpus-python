@@ -109,7 +109,10 @@ def compute_seed_similarity(
     target_norm = np.sqrt(np.dot(target_vec, target_vec))
     if target_norm == 0:
         scores = {r: 0.0 for r in row_labels}
-        return SeedSimilarity(scores=scores, page_weight=page_weight, target_vec=target_vec)
+        return SeedSimilarity(
+            scores=scores, page_weight=page_weight, target_vec=target_vec,
+            n_columns_removed=n_removed, n_columns_used=mat.shape[1],
+        )
 
     # For sparse weighted_mat: dot product with target_vec per row
     dot_products = np.asarray(weighted_mat.dot(target_vec)).ravel()
@@ -124,4 +127,7 @@ def compute_seed_similarity(
 
     scores = {row_labels[i]: float(similarities[i]) for i in range(len(row_labels))}
 
-    return SeedSimilarity(scores=scores, page_weight=page_weight, target_vec=target_vec)
+    return SeedSimilarity(
+        scores=scores, page_weight=page_weight, target_vec=target_vec,
+        n_columns_removed=n_removed, n_columns_used=mat.shape[1],
+    )

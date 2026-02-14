@@ -22,6 +22,7 @@ from .api._templates import get_templates, get_templates_async
 from .exceptions import APIError, HTTPError, PageNotFoundError, WikipediaCorpusError
 from .models import (
     Article,
+    ArticleBatch,
     CategoryMatrix,
     CategoryMember,
     HeadingFrequency,
@@ -76,6 +77,7 @@ __all__ = [
     "plot_heading_frequency",
     # Models
     "Article",
+    "ArticleBatch",
     "CategoryMatrix",
     "CategoryMember",
     "HeadingFrequency",
