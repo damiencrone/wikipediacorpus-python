@@ -11,6 +11,7 @@ from tqdm.asyncio import tqdm as atqdm
 
 from .._http import api_get, api_get_async, get_async_client
 from .._rate_limiter import RateLimiter
+from ..exceptions import PageNotFoundError
 from ..models import Article
 
 logger = logging.getLogger(__name__)
@@ -97,17 +98,28 @@ async def _get_articles_async_impl(
     """Fetch multiple articles concurrently."""
     sem = asyncio.Semaphore(max_concurrency)
 
-    async def _fetch(title: str, client: httpx.AsyncClient) -> Article:
+    async def _fetch(title: str, client: httpx.AsyncClient) -> Article | None:
         async with sem:
-            return await get_article_async(
-                title, lang, client=client, rate_limiter=rate_limiter,
-            )
+            try:
+                return await get_article_async(
+                    title, lang, client=client, rate_limiter=rate_limiter,
+                )
+            except PageNotFoundError:
+                logger.warning("Skipping missing page: '%s' (lang=%s)", title, lang)
+                return None
 
     async with get_async_client() as client:
         tasks = [_fetch(t, client) for t in titles]
-        results: list[Article] = []
+        raw_results: list[Article | None] = []
         for coro in atqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Fetching articles"):
-            results.append(await coro)
+            raw_results.append(await coro)
+
+    results = [r for r in raw_results if r is not None]
+    skipped = len(raw_results) - len(results)
+    if skipped:
+        logger.warning(
+            "Skipped %d missing page(s) out of %d requested", skipped, len(titles),
+        )
     return results
 
 
