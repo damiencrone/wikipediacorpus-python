@@ -31,7 +31,6 @@ class Article:
     text: str
     pageid: int
     lang: str
-    possibly_truncated: bool = False
     wikitext_length: int | None = None
 
 

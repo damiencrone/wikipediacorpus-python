@@ -35,24 +35,11 @@ def _parse_article(data: dict[str, Any], title: str, lang: str) -> Article:
     if "missing" not in page and not text:
         logger.warning("Page '%s' exists but has an empty extract", page.get("title", title))
 
-    possibly_truncated = False
-    if text.endswith("..."):
-        possibly_truncated = True
-    elif wikitext_length is not None and wikitext_length > 0 and len(text) < wikitext_length * 0.5:
-        possibly_truncated = True
-
-    if possibly_truncated:
-        logger.warning(
-            "Article '%s' may be truncated (extract length=%d, wikitext_length=%s)",
-            page.get("title", title), len(text), wikitext_length,
-        )
-
     return Article(
         title=page.get("title", title),
         text=text,
         pageid=page.get("pageid", -1),
         lang=lang,
-        possibly_truncated=possibly_truncated,
         wikitext_length=wikitext_length,
     )
 

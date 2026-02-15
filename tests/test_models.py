@@ -120,28 +120,18 @@ def test_seed_similarity_is_frozen():
 # ── Article new fields ───────────────────────────────────────────────────────
 
 
-def test_article_defaults_for_new_fields():
+def test_article_wikitext_length_default():
     a = Article(title="Test", text="body", pageid=1, lang="en")
-    assert a.possibly_truncated is False
     assert a.wikitext_length is None
 
 
-def test_article_with_truncation_fields():
-    a = Article(
-        title="Test", text="body", pageid=1, lang="en",
-        possibly_truncated=True, wikitext_length=5000,
-    )
-    assert a.possibly_truncated is True
+def test_article_wikitext_length_explicit():
+    a = Article(title="Test", text="body", pageid=1, lang="en", wikitext_length=5000)
     assert a.wikitext_length == 5000
 
 
-def test_article_truncation_fields_are_frozen():
-    a = Article(
-        title="Test", text="body", pageid=1, lang="en",
-        possibly_truncated=True, wikitext_length=5000,
-    )
-    with pytest.raises(dataclasses.FrozenInstanceError):
-        a.possibly_truncated = False
+def test_article_wikitext_length_is_frozen():
+    a = Article(title="Test", text="body", pageid=1, lang="en", wikitext_length=5000)
     with pytest.raises(dataclasses.FrozenInstanceError):
         a.wikitext_length = 0
 

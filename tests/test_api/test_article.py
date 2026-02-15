@@ -353,44 +353,7 @@ async def test_get_articles_http_error_still_propagates(no_rate_limit):
     assert exc_info.value.status_code == 500
 
 
-# ── Truncation and empty extract ─────────────────────────────────────────────
-
-
-@respx.mock
-def test_get_article_truncated_by_ellipsis(no_rate_limit):
-    fixture = load_fixture("article_truncated.json")
-    respx.get("https://en.wikipedia.org/w/api.php").mock(
-        return_value=Response(200, json=fixture)
-    )
-
-    article = get_article("Truncated Article", rate_limiter=no_rate_limit)
-    assert article.possibly_truncated is True
-    assert article.wikitext_length == 50000
-
-
-@respx.mock
-def test_get_article_not_truncated(no_rate_limit):
-    fixture = load_fixture("article_response.json")
-    respx.get("https://en.wikipedia.org/w/api.php").mock(
-        return_value=Response(200, json=fixture)
-    )
-
-    article = get_article(
-        "Python (programming language)", rate_limiter=no_rate_limit
-    )
-    assert article.possibly_truncated is False
-
-
-@respx.mock
-def test_get_article_truncated_by_ratio(no_rate_limit):
-    fixture = load_fixture("article_ratio_truncated.json")
-    respx.get("https://en.wikipedia.org/w/api.php").mock(
-        return_value=Response(200, json=fixture)
-    )
-
-    article = get_article("Ratio Truncated Article", rate_limiter=no_rate_limit)
-    assert article.possibly_truncated is True
-    assert article.wikitext_length == 50000
+# ── Wikitext length and empty extract ────────────────────────────────────────
 
 
 @respx.mock
@@ -441,22 +404,5 @@ def test_get_article_warns_on_empty_extract(no_rate_limit, caplog):
         article = get_article("Empty Extract Article", rate_limiter=no_rate_limit)
 
     assert article.text == ""
-    assert article.possibly_truncated is True  # ratio: len("") < 100 * 0.5
     warning_messages = [r.message for r in caplog.records if r.levelno == logging.WARNING]
     assert any("empty extract" in m for m in warning_messages)
-    assert any("truncated" in m.lower() for m in warning_messages)
-
-
-@respx.mock
-def test_get_article_truncation_logged(no_rate_limit, caplog):
-    fixture = load_fixture("article_truncated.json")
-    respx.get("https://en.wikipedia.org/w/api.php").mock(
-        return_value=Response(200, json=fixture)
-    )
-
-    with caplog.at_level(logging.WARNING, logger="wikipediacorpus.api._article"):
-        article = get_article("Truncated Article", rate_limiter=no_rate_limit)
-
-    assert article.possibly_truncated is True
-    warning_messages = [r.message for r in caplog.records if r.levelno == logging.WARNING]
-    assert any("truncated" in m.lower() for m in warning_messages)
