@@ -8,6 +8,7 @@ from httpx import Response
 
 from tests.conftest import load_fixture
 from wikipediacorpus import get_links, get_links_async
+from wikipediacorpus.exceptions import PageNotFoundError
 from wikipediacorpus.models import LinkDirection
 
 
@@ -175,3 +176,46 @@ def test_get_links_custom_namespaces(no_rate_limit):
 
     url = str(route.calls[0].request.url)
     assert "plnamespace=0%7C14" in url or "plnamespace=0|14" in url
+
+
+# ── Missing page ──────────────────────────────────────────────────────────────
+
+
+@respx.mock
+def test_get_links_outgoing_missing_page(no_rate_limit):
+    fixture = load_fixture("missing_page.json")
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        return_value=Response(200, json=fixture)
+    )
+
+    with pytest.raises(PageNotFoundError):
+        get_links("Nonexistent page qwerty12345", rate_limiter=no_rate_limit)
+
+
+@respx.mock
+def test_get_links_incoming_missing_page(no_rate_limit):
+    fixture = load_fixture("missing_page.json")
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        return_value=Response(200, json=fixture)
+    )
+
+    with pytest.raises(PageNotFoundError):
+        get_links(
+            "Nonexistent page qwerty12345",
+            direction=LinkDirection.INCOMING,
+            rate_limiter=no_rate_limit,
+        )
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_get_links_async_missing_page(no_rate_limit):
+    fixture = load_fixture("missing_page.json")
+    respx.get("https://en.wikipedia.org/w/api.php").mock(
+        return_value=Response(200, json=fixture)
+    )
+
+    with pytest.raises(PageNotFoundError):
+        await get_links_async(
+            "Nonexistent page qwerty12345", rate_limiter=no_rate_limit
+        )

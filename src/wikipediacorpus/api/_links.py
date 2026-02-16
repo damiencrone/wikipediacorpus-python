@@ -83,13 +83,19 @@ def get_links(
     params = _make_params(page, direction, namespaces)
     links: list[WikiLink] = []
 
-    data = api_get(params, lang, client=client, rate_limiter=rate_limiter)
+    data = api_get(
+        params, lang, client=client, rate_limiter=rate_limiter,
+        check_missing=True, title=page,
+    )
     links.extend(_parse_links(data, direction))
 
     continue_key = "lhcontinue" if direction == LinkDirection.INCOMING else "plcontinue"
     while "continue" in data and continue_key in data["continue"]:
         params[continue_key] = data["continue"][continue_key]
-        data = api_get(params, lang, client=client, rate_limiter=rate_limiter)
+        data = api_get(
+            params, lang, client=client, rate_limiter=rate_limiter,
+            check_missing=True, title=page,
+        )
         links.extend(_parse_links(data, direction))
 
     return links
@@ -112,13 +118,19 @@ async def get_links_async(
     params = _make_params(page, direction, namespaces)
     links: list[WikiLink] = []
 
-    data = await api_get_async(params, lang, client=client, rate_limiter=rate_limiter)
+    data = await api_get_async(
+        params, lang, client=client, rate_limiter=rate_limiter,
+        check_missing=True, title=page,
+    )
     links.extend(_parse_links(data, direction))
 
     continue_key = "lhcontinue" if direction == LinkDirection.INCOMING else "plcontinue"
     while "continue" in data and continue_key in data["continue"]:
         params[continue_key] = data["continue"][continue_key]
-        data = await api_get_async(params, lang, client=client, rate_limiter=rate_limiter)
+        data = await api_get_async(
+            params, lang, client=client, rate_limiter=rate_limiter,
+            check_missing=True, title=page,
+        )
         links.extend(_parse_links(data, direction))
 
     return links
